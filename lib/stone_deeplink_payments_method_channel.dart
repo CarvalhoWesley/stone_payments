@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:stone_payments/enums/type_installment_enum.dart';
 import 'package:stone_payments/enums/type_transaction_enum.dart';
 import 'package:stone_payments/models/transaction.dart';
+import 'package:stone_payments/models/transaction_deeplink.dart';
 
 import 'stone_deeplink_payments_platform_interface.dart';
 
@@ -13,6 +17,9 @@ import 'stone_deeplink_payments_platform_interface.dart';
 /// processed at a time and handles communication with the native platform
 /// via the `MethodChannel`.
 class MethodChannelStoneDeeplinkPayments extends StoneDeeplinkPaymentsPlatform {
+  static final _controller = StreamController<TransactionDeeplink>.broadcast();
+  static Stream<TransactionDeeplink> get onTransaction => _controller.stream;
+
   /// The [MethodChannel] used to interact with native platform code.
   ///
   /// This channel communicates with the platform using the channel name `stone_payments`.
@@ -22,23 +29,40 @@ class MethodChannelStoneDeeplinkPayments extends StoneDeeplinkPaymentsPlatform {
   /// Tracks whether a payment or refund operation is currently in progress.
   bool _transactionInProgress = false;
 
+  /// Creates an instance of [MethodChannelStoneDeeplinkPayments].
+  MethodChannelStoneDeeplinkPayments() {
+    methodChannel.setMethodCallHandler((call) async {
+      _transactionInProgress = false;
+      try {
+        if (call.method == 'onDeeplinkResponse') {
+          final Map<String, dynamic> data =
+              Map<String, dynamic>.from(call.arguments);
+          final tx = TransactionDeeplink.fromMap(data);
+          _controller.add(tx);
+        }
+      } catch (e) {
+        rethrow;
+      }
+    });
+  }
+
   /// Processes a payment request via the native platform.
   ///
   /// [amount] is the payment amount and must be greater than zero.
   /// [transactionType] specifies the type of payment (credit or debit).
-  /// [callerId] is the transaction identifier and cannot be empty.
+  /// [orderId] is the transaction identifier and cannot be empty.
   /// [installmentCount] specifies the number of installments (between 1 and 12).
-  /// [creditType] (optional) specifies the credit type for credit payments (creditMerchant or creditIssuer).
   /// Returns a [Transaction] object containing the transaction details, or
   /// `null` if a transaction is already in progress or if the result is `null`.
   ///
   /// Throws an exception if an error occurs during platform communication.
   @override
-  Future<Transaction?> transaction({
+  Future<void> transaction({
     required double amount,
     required TypeTransactionEnum transactionType,
     required String orderId,
     int installmentCount = 1,
+    TypeInstallmentEnum installmentType = TypeInstallmentEnum.none,
   }) async {
     try {
       if (_transactionInProgress) {
@@ -47,23 +71,17 @@ class MethodChannelStoneDeeplinkPayments extends StoneDeeplinkPaymentsPlatform {
 
       _transactionInProgress = true;
 
-      final result = await methodChannel.invokeMethod<String>(
+      await methodChannel.invokeMethod<String>(
         'transactionDeeplink',
         <String, dynamic>{
           'amount': amount,
           'transactionType': transactionType.name,
           'orderId': orderId,
-          'installmentCount': installmentCount,
+          'installmentCount': installmentCount.toString(),
+          'installmentType': installmentType.name,
         },
       );
-
-      if (result == null) {
-        return null;
-      }
-
       _transactionInProgress = false;
-
-      return Transaction.fromJson(result);
     } catch (e) {
       _transactionInProgress = false;
       rethrow;
@@ -83,35 +101,25 @@ class MethodChannelStoneDeeplinkPayments extends StoneDeeplinkPaymentsPlatform {
   ///
   /// Throws an exception if an error occurs during platform communication.
   @override
-  Future<Transaction?> cancel({
+  Future<void> cancel({
     required double amount,
     DateTime? transactionDate,
     String? cvNumber,
     String? originTerminal,
   }) async {
     try {
-      if (_transactionInProgress) {
-        return null;
-      }
+      if (_transactionInProgress) return;
 
       _transactionInProgress = true;
 
-      final result = await methodChannel.invokeMethod<String>(
-        'refundDeeplink',
+      await methodChannel.invokeMethod<String>(
+        'cancelDeeplink',
         <String, dynamic>{
           'amount': amount,
           'cvNumber': cvNumber,
           'originTerminal': originTerminal,
         },
       );
-
-      if (result == null) {
-        return null;
-      }
-
-      _transactionInProgress = false;
-
-      return Transaction.fromJson(result);
     } catch (e) {
       _transactionInProgress = false;
       rethrow;

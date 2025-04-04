@@ -43,20 +43,9 @@ class StonePaymentsPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Act
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         activity = binding.activity
-
-        // Inicializar os casos de uso com o contexto ou atividade
-        deeplinkUsecase = DeeplinkUsecase(activity)
+        deeplinkUsecase = DeeplinkUsecase(activity,channel)
 
         binding.addOnNewIntentListener(::handleNewIntent)
-
-        /*binding.addActivityResultListener { requestCode, resultCode, data ->
-            if (requestCode == DeeplinkUsecase.REQUEST_CODE_PAYMENT) {
-                deeplinkUsecase?.handleActivityResult(resultCode, data)
-                true
-            } else {
-                false
-            }
-        }*/
     }
 
     override fun onDetachedFromActivity() {
@@ -223,7 +212,10 @@ class StonePaymentsPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Act
                     result.error("UNAVAILABLE", "Cannot cancel", e.toString())
                 }
             }
-            "transactionDeeplink" -> deeplinkUsecase?.doTransaction(call, result)
+            "transactionDeeplink" -> {
+                deeplinkUsecase?.doTransaction(call, result)
+                result.success("started")
+            }
             else -> {
                 result.notImplemented()
             }
@@ -235,12 +227,10 @@ class StonePaymentsPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Act
     }
 
     private fun handleNewIntent(intent: Intent): Boolean {
-        Log.i("StonePlugin", "onNewIntent received:")
-
-//        intent.data?.let {
-//            deeplinkUsecase?.handleDeeplinkResponse(intent)
-//            return true
-//        }
-        return false
+        Log.d("StonePaymentsPlugin", "onNewIntent received: ${intent.data}")
+        return intent.data?.let {
+            deeplinkUsecase?.handleDeeplinkResponse(intent)
+            true
+        } ?: false
     }
 }

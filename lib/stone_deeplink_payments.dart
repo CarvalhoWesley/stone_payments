@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:stone_payments/enums/type_installment_enum.dart';
 import 'package:stone_payments/enums/type_transaction_enum.dart';
+import 'package:stone_payments/models/transaction_deeplink.dart';
 import 'package:stone_payments/stone_deeplink_payments_platform_interface.dart';
 import 'package:stone_payments/models/transaction.dart';
 
@@ -10,14 +12,15 @@ import 'package:stone_payments/models/transaction.dart';
 /// This class validates input parameters and delegates operations
 /// to the platform interface [StoneDeeplinkPaymentsPlatform].
 class StoneDeeplinkPayments {
+  static Stream<TransactionDeeplink> get onTransaction =>
+      StoneDeeplinkPaymentsPlatform.onTransaction;
+
   /// Processes a payment with the provided parameters.
   ///
   /// [amount] is the payment amount and must be greater than zero.
   /// [transactionType] specifies the type of payment (credit or debit).
   /// [orderId] is the transaction identifier and cannot be empty.
   /// [installmentCount] specifies the number of installments (between 1 and 12).
-  /// [creditType] (optional) specifies the credit type for credit payments (creditMerchant or creditIssuer).
-  /// For debit payments, this value must always be 1.
   ///
   /// Returns a [Transaction] object containing transaction details, or
   /// `null` if the transaction fails.
@@ -27,15 +30,14 @@ class StoneDeeplinkPayments {
   /// - [installmentCount] is less than 1 or greater than 12.
   /// - [orderId] is empty.
   /// - The number of installments is not 1 for debit payment types.
-  static Future<Transaction?> transaction({
+  static Future<void> transaction({
     required double amount,
     required TypeTransactionEnum transactionType,
     required String orderId,
     int installmentCount = 1,
+    TypeInstallmentEnum installmentType = TypeInstallmentEnum.none,
   }) async {
     assert(amount > 0, 'The payment amount must be greater than zero');
-    assert(installmentCount > 0 && installmentCount <= 12,
-        'The number of installments must be between 1 and 12');
     assert(orderId.isNotEmpty, 'The client identifier cannot be empty');
     if (transactionType == TypeTransactionEnum.debit) {
       assert(installmentCount == 1,
@@ -68,7 +70,7 @@ class StoneDeeplinkPayments {
   ///
   /// Throws an exception if:
   /// - [amount] is less than or equal to 0.
-  static Future<Transaction?> cancel({
+  static Future<void> cancel({
     required double amount,
     DateTime? transactionDate,
     String? cvNumber,
