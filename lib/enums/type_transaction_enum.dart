@@ -24,3 +24,21 @@ enum TypeTransactionEnum {
 
   const TypeTransactionEnum(this.value);
 }
+
+/// Converts the enum value to a string extension.
+
+extension TypeTransactionEnumExtension on TypeTransactionEnum {
+  /// Converts the enum value to a string
+  String get name {
+    switch (this) {
+      case TypeTransactionEnum.debit:
+        return 'DEBIT';
+      case TypeTransactionEnum.credit:
+        return 'CREDIT';
+      case TypeTransactionEnum.voucher:
+        return 'VOUCHER';
+      case TypeTransactionEnum.pix:
+        return 'PIX';
+    }
+  }
+}
