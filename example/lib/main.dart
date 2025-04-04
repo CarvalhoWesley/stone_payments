@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +9,7 @@ import 'package:stone_payments/enums/type_owner_print_enum.dart';
 import 'package:stone_payments/enums/type_transaction_enum.dart';
 import 'package:stone_payments/models/item_print_model.dart';
 import 'package:stone_payments/models/transaction.dart';
+import 'package:stone_payments/stone_deeplink_payments.dart';
 import 'package:stone_payments/stone_payments.dart';
 
 void main() async {
@@ -85,16 +87,19 @@ class _MyAppState extends State<MyApp> {
                         FocusScope.of(context).unfocus();
                         if (valueController.text.isEmpty) return;
 
-                        if (listen.isPaused) {
-                          listen.resume();
-                        }
+                        // if (listen.isPaused) {
+                        //   listen.resume();
+                        // }
 
                         final valor = double.parse(valueController.text);
                         try {
-                          final result = await StonePayments.transaction(
-                            value: valor,
-                            typeTransaction: TypeTransactionEnum.credit,
-                            printReceipt: true,
+                          final result =
+                              await StoneDeeplinkPayments.transaction(
+                            amount: valor,
+                            transactionType: TypeTransactionEnum.credit,
+                            orderId: DateTime.now()
+                                .millisecondsSinceEpoch
+                                .toString(),
                           );
                           if (result == null) return;
 
@@ -106,6 +111,7 @@ class _MyAppState extends State<MyApp> {
                         } catch (e) {
                           listen.pause();
                           message.value = "Falha no pagamento";
+                          log(e.toString());
                         }
                       },
                       child: const Text('CRÉDITO'),
@@ -230,7 +236,7 @@ class _MyAppState extends State<MyApp> {
                       final result = await StonePayments.abortPayment();
                       if (result == null) return;
 
-                      if(result == "ABORTED") {
+                      if (result == "ABORTED") {
                         message.value = "Transação abortada com sucesso";
                       }
 

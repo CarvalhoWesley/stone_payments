@@ -3,9 +3,9 @@ package dev.ltag.stone_payments
 import android.app.Activity
 import android.content.Context
 import androidx.annotation.NonNull
-import dev.ltag.stone_payments.usecases.ActivateUsecase
-import dev.ltag.stone_payments.usecases.PaymentUsecase
-import dev.ltag.stone_payments.usecases.PrinterUsecase
+import android.content.Intent
+import android.util.Log
+import dev.ltag.stone_payments.usecases.*
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.BinaryMessenger
@@ -14,14 +14,18 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import stone.database.transaction.TransactionObject
 import io.flutter.plugin.common.MethodChannel.Result as Res
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 
 /** StonePaymentsPlugin */
-class StonePaymentsPlugin : FlutterPlugin, MethodCallHandler, Activity() {
+class StonePaymentsPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Activity() {
     private lateinit var channel: MethodChannel
     var context: Context = this;
+    var activity: Activity? = null
     var transactionObject = TransactionObject()
     var paymentUsecase: PaymentUsecase? = null
     var printerUsecase: PrinterUsecase? = null
+    var deeplinkUsecase: DeeplinkUsecase? = null
 
     companion object {
         var flutterBinaryMessenger: BinaryMessenger? = null
@@ -35,6 +39,37 @@ class StonePaymentsPlugin : FlutterPlugin, MethodCallHandler, Activity() {
         // Inicialize as propriedades aqui
         paymentUsecase = PaymentUsecase(this)
         printerUsecase = PrinterUsecase(this)
+    }
+
+    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+        activity = binding.activity
+
+        // Inicializar os casos de uso com o contexto ou atividade
+        deeplinkUsecase = DeeplinkUsecase(activity)
+
+        binding.addOnNewIntentListener(::handleNewIntent)
+
+        /*binding.addActivityResultListener { requestCode, resultCode, data ->
+            if (requestCode == DeeplinkUsecase.REQUEST_CODE_PAYMENT) {
+                deeplinkUsecase?.handleActivityResult(resultCode, data)
+                true
+            } else {
+                false
+            }
+        }*/
+    }
+
+    override fun onDetachedFromActivity() {
+        activity = null
+        deeplinkUsecase = null
+    }
+
+    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+        onAttachedToActivity(binding)
+    }
+
+    override fun onDetachedFromActivityForConfigChanges() {
+        onDetachedFromActivity()
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Res) {
@@ -188,6 +223,7 @@ class StonePaymentsPlugin : FlutterPlugin, MethodCallHandler, Activity() {
                     result.error("UNAVAILABLE", "Cannot cancel", e.toString())
                 }
             }
+            "transactionDeeplink" -> deeplinkUsecase?.doTransaction(call, result)
             else -> {
                 result.notImplemented()
             }
@@ -196,5 +232,15 @@ class StonePaymentsPlugin : FlutterPlugin, MethodCallHandler, Activity() {
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
+    }
+
+    private fun handleNewIntent(intent: Intent): Boolean {
+        Log.i("StonePlugin", "onNewIntent received:")
+
+//        intent.data?.let {
+//            deeplinkUsecase?.handleDeeplinkResponse(intent)
+//            return true
+//        }
+        return false
     }
 }
