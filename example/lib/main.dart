@@ -5,6 +5,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:stone_payments/enums/item_print_type_enum.dart';
+import 'package:stone_payments/enums/type_installment_enum.dart';
 import 'package:stone_payments/enums/type_owner_print_enum.dart';
 import 'package:stone_payments/enums/type_transaction_enum.dart';
 import 'package:stone_payments/models/item_print_model.dart';
@@ -33,12 +34,13 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late StreamSubscription<String> listen;
+  late StreamSubscription listenDeeplink;
   Uint8List? image;
   TextEditingController valueController = TextEditingController();
 
   ValueNotifier message = ValueNotifier<String>('Running...');
   ValueNotifier transactionSuccefull = ValueNotifier<bool>(false);
-  ValueNotifier transactions = ValueNotifier<List<Transaction>>([]);
+  ValueNotifier transactions = ValueNotifier<List>([]);
 
   @override
   void initState() {
@@ -46,7 +48,15 @@ class _MyAppState extends State<MyApp> {
       this.message.value = message;
     });
 
-    valueController.text = '10.00';
+    listenDeeplink = StoneDeeplinkPayments.onTransaction.listen((transaction) {
+      if (transaction.success ?? false) {
+        transactionSuccefull.value = true;
+        transactions.value.add(transaction);
+        transactions.notifyListeners();
+      }
+    });
+
+    valueController.text = '10.50';
 
     super.initState();
   }
@@ -79,6 +89,10 @@ class _MyAppState extends State<MyApp> {
                     ),
                   ),
                 ),
+                const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text("SDK Provider"),
+                ),
                 Wrap(
                   children: [
                     //CREDITO
@@ -87,31 +101,28 @@ class _MyAppState extends State<MyApp> {
                         FocusScope.of(context).unfocus();
                         if (valueController.text.isEmpty) return;
 
-                        // if (listen.isPaused) {
-                        //   listen.resume();
-                        // }
-
                         final valor = double.parse(valueController.text);
+
+                        if (listen.isPaused) {
+                          listen.resume();
+                        }
+
                         try {
-                          final result =
-                              await StoneDeeplinkPayments.transaction(
-                            amount: valor,
-                            transactionType: TypeTransactionEnum.credit,
-                            orderId: DateTime.now()
-                                .millisecondsSinceEpoch
-                                .toString(),
+                          final result = await StonePayments.transaction(
+                            value: valor,
+                            typeTransaction: TypeTransactionEnum.credit,
+                            printReceipt: true,
                           );
                           if (result == null) return;
-
                           if (result.transactionStatus == "APPROVED") {
                             transactionSuccefull.value = true;
                             transactions.value.add(result);
                             transactions.notifyListeners();
                           }
+                          debugPrint(result.toJson());
                         } catch (e) {
                           listen.pause();
                           message.value = "Falha no pagamento";
-                          log(e.toString());
                         }
                       },
                       child: const Text('CRÉDITO'),
@@ -220,35 +231,153 @@ class _MyAppState extends State<MyApp> {
                       },
                       child: const Text('PIX'),
                     ),
+                    const SizedBox(width: 10),
+                    //ABORTAR TRANSAÇÃO
+                    ElevatedButton(
+                      onPressed: () async {
+                        FocusScope.of(context).unfocus();
+                        if (valueController.text.isEmpty) return;
+
+                        if (listen.isPaused) {
+                          listen.resume();
+                        }
+
+                        try {
+                          final result = await StonePayments.abortPayment();
+                          if (result == null) return;
+
+                          if (result == "ABORTED") {
+                            message.value = "Transação abortada com sucesso";
+                          }
+
+                          debugPrint(result.toString());
+                        } catch (e) {
+                          listen.pause();
+                          message.value = "Falha ao abortar transação";
+                        }
+                      },
+                      child: const Text('ABORTAR TRANSAÇÃO'),
+                    ),
                   ],
                 ),
-                //ABORTAR TRANSAÇÃO
-                ElevatedButton(
-                  onPressed: () async {
-                    FocusScope.of(context).unfocus();
-                    if (valueController.text.isEmpty) return;
-
-                    if (listen.isPaused) {
-                      listen.resume();
-                    }
-
-                    try {
-                      final result = await StonePayments.abortPayment();
-                      if (result == null) return;
-
-                      if (result == "ABORTED") {
-                        message.value = "Transação abortada com sucesso";
-                      }
-
-                      debugPrint(result.toString());
-                    } catch (e) {
-                      listen.pause();
-                      message.value = "Falha ao abortar transação";
-                    }
-                  },
-                  child: const Text('ABORTAR TRANSAÇÃO'),
+                const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text("Deeplink"),
                 ),
+                Wrap(
+                  children: [
+                    //CREDITO
+                    ElevatedButton(
+                      onPressed: () async {
+                        FocusScope.of(context).unfocus();
+                        if (valueController.text.isEmpty) return;
 
+                        final valor = double.parse(valueController.text);
+
+                        if (listenDeeplink.isPaused) {
+                          listenDeeplink.resume();
+                        }
+
+                        try {
+                          await StoneDeeplinkPayments.transaction(
+                            amount: valor,
+                            transactionType: TypeTransactionEnum.credit,
+                            orderId: DateTime.now()
+                                .millisecondsSinceEpoch
+                                .toString(),
+                          );
+                        } catch (e) {
+                          listenDeeplink.pause();
+                          message.value = "Falha no pagamento";
+                        }
+                      },
+                      child: const Text('CRÉDITO'),
+                    ),
+                    const SizedBox(width: 10),
+                    //CREDITO - 2X
+                    ElevatedButton(
+                      onPressed: () async {
+                        FocusScope.of(context).unfocus();
+                        if (valueController.text.isEmpty) return;
+
+                        final valor = double.parse(valueController.text);
+                        if (listenDeeplink.isPaused) {
+                          listenDeeplink.resume();
+                        }
+
+                        try {
+                          await StoneDeeplinkPayments.transaction(
+                            amount: valor,
+                            transactionType: TypeTransactionEnum.credit,
+                            installmentType: TypeInstallmentEnum.none,
+                            installmentCount: 1,
+                            orderId: DateTime.now()
+                                .millisecondsSinceEpoch
+                                .toString(),
+                          );
+                        } catch (e) {
+                          listenDeeplink.pause();
+                          message.value = "Falha no pagamento";
+                        }
+                      },
+                      child: const Text('CRÉDITO - 2X'),
+                    ),
+                    const SizedBox(width: 10),
+                    //DÉBITO
+                    ElevatedButton(
+                      onPressed: () async {
+                        FocusScope.of(context).unfocus();
+                        final valor = double.parse(valueController.text);
+
+                        if (listenDeeplink.isPaused) {
+                          listenDeeplink.resume();
+                        }
+
+                        try {
+                          await StoneDeeplinkPayments.transaction(
+                            amount: valor,
+                            transactionType: TypeTransactionEnum.debit,
+                            orderId: DateTime.now()
+                                .millisecondsSinceEpoch
+                                .toString(),
+                          );
+                        } catch (e) {
+                          listenDeeplink.pause();
+                          message.value = "Falha no pagamento";
+                        }
+                      },
+                      child: const Text('DÉBITO'),
+                    ),
+                    const SizedBox(width: 10),
+                    //PIX
+                    ElevatedButton(
+                      onPressed: () async {
+                        FocusScope.of(context).unfocus();
+                        if (valueController.text.isEmpty) return;
+
+                        if (listenDeeplink.isPaused) {
+                          listenDeeplink.resume();
+                        }
+
+                        final valor = double.parse(valueController.text);
+                        try {
+                          await StoneDeeplinkPayments.transaction(
+                            amount: valor,
+                            transactionType: TypeTransactionEnum.pix,
+                            orderId: DateTime.now()
+                                .millisecondsSinceEpoch
+                                .toString(),
+                          );
+                        } catch (e) {
+                          listenDeeplink.pause();
+                          message.value = "Falha no pagamento";
+                        }
+                      },
+                      child: const Text('PIX'),
+                    ),
+                    const SizedBox(width: 10),
+                  ],
+                ),
                 if (image != null)
                   Image.memory(
                     image!,
@@ -329,17 +458,21 @@ class _MyAppState extends State<MyApp> {
                           const Text('Transações:'),
                           ..._transactions
                               .map((transaction) => ListTile(
-                                    title: Text(transaction
-                                        .initiatorTransactionKey
-                                        .toString()),
+                                    title: Text((transaction is Transaction)
+                                        ? transaction.initiatorTransactionKey
+                                            .toString()
+                                        : transaction.itk),
                                     trailing: IconButton(
                                       icon: const Icon(Icons.delete),
                                       onPressed: () async {
                                         final result =
                                             await StonePayments.cancelPayment(
                                                 initiatorTransactionKey:
-                                                    transaction
-                                                        .initiatorTransactionKey!,
+                                                    (transaction is Transaction)
+                                                        ? transaction
+                                                            .initiatorTransactionKey
+                                                            .toString()
+                                                        : transaction.itk,
                                                 printReceipt: true);
                                         if (result == null) return;
                                         if (result.transactionStatus ==

@@ -1,4 +1,6 @@
+import 'package:stone_payments/enums/type_installment_enum.dart';
 import 'package:stone_payments/enums/type_transaction_enum.dart';
+import 'package:stone_payments/models/transaction_deeplink.dart';
 import 'package:stone_payments/stone_deeplink_payments_method_channel.dart';
 import 'package:stone_payments/models/transaction.dart';
 
@@ -20,6 +22,8 @@ abstract class StoneDeeplinkPaymentsPlatform {
 
   /// Gets the current platform-specific implementation instance.
   static StoneDeeplinkPaymentsPlatform get instance => _instance;
+  static Stream<TransactionDeeplink> get onTransaction =>
+      MethodChannelStoneDeeplinkPayments.onTransaction;
 
   /// Sets the platform-specific implementation instance.
   ///
@@ -44,11 +48,12 @@ abstract class StoneDeeplinkPaymentsPlatform {
   /// `null` if the transaction fails.
   ///
   /// This method must be implemented by a platform-specific class.
-  Future<Transaction?> transaction({
+  Future<void> transaction({
     required double amount,
     required TypeTransactionEnum transactionType,
     required String orderId,
     int installmentCount,
+    TypeInstallmentEnum installmentType,
   });
 
   /// Processes a refund for a transaction with the provided parameters.
@@ -62,7 +67,7 @@ abstract class StoneDeeplinkPaymentsPlatform {
   /// `null` if the operation fails.
   ///
   /// This method must be implemented by a platform-specific class.
-  Future<Transaction?> cancel({
+  Future<void> cancel({
     required double amount,
     DateTime? transactionDate,
     String? cvNumber,
