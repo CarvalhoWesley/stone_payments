@@ -216,6 +216,10 @@ class StonePaymentsPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Act
                 deeplinkUsecase?.doTransaction(call, result)
                 result.success("started")
             }
+            "cancelDeeplink" -> {
+                deeplinkUsecase?.doCancel(call, result)
+                result.success("started")
+            }
             else -> {
                 result.notImplemented()
             }

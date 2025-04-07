@@ -10,6 +10,7 @@ import 'package:stone_payments/enums/type_owner_print_enum.dart';
 import 'package:stone_payments/enums/type_transaction_enum.dart';
 import 'package:stone_payments/models/item_print_model.dart';
 import 'package:stone_payments/models/transaction.dart';
+import 'package:stone_payments/models/transaction_deeplink.dart';
 import 'package:stone_payments/stone_deeplink_payments.dart';
 import 'package:stone_payments/stone_payments.dart';
 
@@ -465,24 +466,31 @@ class _MyAppState extends State<MyApp> {
                                     trailing: IconButton(
                                       icon: const Icon(Icons.delete),
                                       onPressed: () async {
-                                        final result =
-                                            await StonePayments.cancelPayment(
-                                                initiatorTransactionKey:
-                                                    (transaction is Transaction)
-                                                        ? transaction
-                                                            .initiatorTransactionKey
-                                                            .toString()
-                                                        : transaction.itk,
-                                                printReceipt: true);
-                                        if (result == null) return;
-                                        if (result.transactionStatus ==
-                                            "CANCELLED") {
-                                          transactionSuccefull.value = true;
-                                          transactions.value
-                                              .remove(transaction);
-                                          transactions.notifyListeners();
-                                        }
-                                        debugPrint(result.toJson());
+                                        // final result =
+                                        //     await StoneDeeplinkPayments.cancel(
+
+                                        //         initiatorTransactionKey:
+                                        //             (transaction is Transaction)
+                                        //                 ? transaction
+                                        //                     .initiatorTransactionKey
+                                        //                     .toString()
+                                        //                 : transaction.itk,
+                                        //         printReceipt: true);
+                                        // if (result == null) return;
+                                        // if (result.transactionStatus ==
+                                        //     "CANCELLED") {
+                                        //   transactionSuccefull.value = true;
+                                        //   transactions.value
+                                        //       .remove(transaction);
+                                        //   transactions.notifyListeners();
+                                        // }
+                                        // debugPrint(result.toJson());
+                                        transaction as TransactionDeeplink;
+                                        await StoneDeeplinkPayments.cancel(
+                                          amount: _convertAmountToDouble(
+                                              transaction.amount),
+                                          atk: transaction.atk,
+                                        );
                                       },
                                     ),
                                   ))
@@ -496,5 +504,16 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
     );
+  }
+
+  _convertAmountToDouble(String? amount) {
+    if (amount == null) return 0.0;
+    if (amount.isEmpty) return 0.0;
+    try {
+      final doubleValue = double.parse(amount) / 100;
+      return doubleValue;
+    } catch (e) {
+      log(e.toString());
+    }
   }
 }

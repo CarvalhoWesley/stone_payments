@@ -73,6 +73,7 @@ class StoneDeeplinkPayments {
     required String? atk,
   }) async {
     assert(amount > 0, 'The refund amount must be greater than zero');
+    assert(atk != null && atk.isNotEmpty, 'The atk is required');
 
     try {
       // Delegate the refund process to the platform
