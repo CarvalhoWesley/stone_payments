@@ -34,8 +34,8 @@ class DeeplinkUsecase(private val activity: Activity?, private val channel: Meth
         }
 
         val uriBuilder = Uri.Builder()
-                .scheme("payment-app")
                 .authority("pay")
+                .scheme("payment-app")
                 .appendQueryParameter("return_scheme", "stonepayments")
                 .appendQueryParameter("amount", amountFormatted)
                 .appendQueryParameter("editable_amount", "0")
@@ -43,6 +43,40 @@ class DeeplinkUsecase(private val activity: Activity?, private val channel: Meth
                 .appendQueryParameter("installment_type", installmentType)
                 .appendQueryParameter("order_id", orderId)
                 .appendQueryParameter("installment_count", installmentCount)
+
+        val intent = Intent(Intent.ACTION_VIEW, uriBuilder.build()).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+
+        try {
+            activity?.startActivity(intent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro ao iniciar deeplink", e)
+        }
+    }
+
+    fun doCancel(call: MethodCall, result: MethodChannel.Result) {
+        val amount = call.argument<Double>("amount")
+        val atk = call.argument<String>("atk")
+
+        if (amount == null || amount <= 0) {
+            result.error("INVALID_ARGUMENTS", "Invalid amount provided", null)
+            return
+        }
+
+        val amountFormatted = String.format("%09d", (amount * 100).toLong())
+
+        if (atk.isNullOrEmpty()) {
+            result.error("INVALID_ARGUMENTS", "Required arguments are missing", null)
+            return
+        }
+
+        val uriBuilder = Uri.Builder()
+            .authority("cancel")
+            .scheme("cancel-app")
+            .appendQueryParameter("return_scheme", "stonepayments")
+            .appendQueryParameter("amount", amountFormatted)
+            .appendQueryParameter("editable_amount", "0")
 
         val intent = Intent(Intent.ACTION_VIEW, uriBuilder.build()).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
