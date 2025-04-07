@@ -43,7 +43,6 @@ abstract class StoneDeeplinkPaymentsPlatform {
   /// [transactionType] specifies the type of payment (credit, debit, voucher or pix).
   /// [orderId] is the transaction identifier and cannot be empty.
   /// [installmentCount] specifies the number of installments.
-  /// [creditType] (optional) specifies the credit type for credit payments (creditMerchant or creditIssuer).
   /// Returns a [Transaction] object containing transaction details, or
   /// `null` if the transaction fails.
   ///
@@ -59,9 +58,7 @@ abstract class StoneDeeplinkPaymentsPlatform {
   /// Processes a refund for a transaction with the provided parameters.
   ///
   /// [amount] is the refund amount and must be greater than zero.
-  /// [transactionDate] (optional) specifies the date of the original transaction.
-  /// [cvNumber] (optional) is the control number of the transaction (CV).
-  /// [originTerminal] (optional) identifies the origin terminal.
+  /// [atk] is the acquirer transaction key.
   ///
   /// Returns a [Transaction] object containing refund details, or
   /// `null` if the operation fails.
@@ -69,8 +66,6 @@ abstract class StoneDeeplinkPaymentsPlatform {
   /// This method must be implemented by a platform-specific class.
   Future<void> cancel({
     required double amount,
-    DateTime? transactionDate,
-    String? cvNumber,
-    String? originTerminal,
+    required String? atk,
   });
 }

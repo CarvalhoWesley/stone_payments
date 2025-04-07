@@ -61,9 +61,7 @@ class StoneDeeplinkPayments {
   /// Processes a refund for a transaction based on the provided parameters.
   ///
   /// [amount] is the refund amount and must be greater than zero.
-  /// [transactionDate] (optional) specifies the date of the original transaction.
-  /// [cvNumber] (optional) is the control number of the transaction (CV).
-  /// [originTerminal] (optional) identifies the origin terminal.
+  /// [atk] is the acquirer transaction key.
   ///
   /// Returns a [Transaction] object containing refund details, or
   /// `null` if the operation fails.
@@ -72,9 +70,7 @@ class StoneDeeplinkPayments {
   /// - [amount] is less than or equal to 0.
   static Future<void> cancel({
     required double amount,
-    DateTime? transactionDate,
-    String? cvNumber,
-    String? originTerminal,
+    required String? atk,
   }) async {
     assert(amount > 0, 'The refund amount must be greater than zero');
 
@@ -82,9 +78,7 @@ class StoneDeeplinkPayments {
       // Delegate the refund process to the platform
       return StoneDeeplinkPaymentsPlatform.instance.cancel(
         amount: amount,
-        transactionDate: transactionDate,
-        cvNumber: cvNumber,
-        originTerminal: originTerminal,
+        atk: atk,
       );
     } catch (e) {
       // Emit the error through the stream
