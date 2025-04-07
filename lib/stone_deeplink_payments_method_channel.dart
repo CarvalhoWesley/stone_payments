@@ -65,13 +65,11 @@ class MethodChannelStoneDeeplinkPayments extends StoneDeeplinkPaymentsPlatform {
     TypeInstallmentEnum installmentType = TypeInstallmentEnum.none,
   }) async {
     try {
-      if (_transactionInProgress) {
-        return null;
-      }
+      if (_transactionInProgress) return;
 
       _transactionInProgress = true;
 
-      await methodChannel.invokeMethod<String>(
+      await methodChannel.invokeMethod(
         'transactionDeeplink',
         <String, dynamic>{
           'amount': amount,
@@ -91,10 +89,7 @@ class MethodChannelStoneDeeplinkPayments extends StoneDeeplinkPaymentsPlatform {
   /// Processes a refund request via the native platform.
   ///
   /// [amount] is the refund amount and must be greater than zero.
-  /// [transactionDate] (optional) specifies the date of the original transaction,
-  /// formatted as `dd/MM/yy`.
-  /// [cvNumber] (optional) is the control number of the transaction (CV).
-  /// [originTerminal] (optional) identifies the origin terminal.
+  /// [atk] is the acquirer transaction key.
   ///
   /// Returns a [Transaction] object containing the refund details, or
   /// `null` if a transaction is already in progress or if the result is `null`.
@@ -103,23 +98,21 @@ class MethodChannelStoneDeeplinkPayments extends StoneDeeplinkPaymentsPlatform {
   @override
   Future<void> cancel({
     required double amount,
-    DateTime? transactionDate,
-    String? cvNumber,
-    String? originTerminal,
+    required String? atk,
   }) async {
     try {
       if (_transactionInProgress) return;
 
       _transactionInProgress = true;
 
-      await methodChannel.invokeMethod<String>(
+      await methodChannel.invokeMethod(
         'cancelDeeplink',
         <String, dynamic>{
           'amount': amount,
-          'cvNumber': cvNumber,
-          'originTerminal': originTerminal,
+          'atk': atk,
         },
       );
+      _transactionInProgress = false;
     } catch (e) {
       _transactionInProgress = false;
       rethrow;
