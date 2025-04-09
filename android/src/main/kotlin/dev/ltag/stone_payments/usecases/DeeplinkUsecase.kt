@@ -8,7 +8,6 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
 class DeeplinkUsecase(private val activity: Activity?, private val channel: MethodChannel) {
-    private var pendingResult: MethodChannel.Result? = null
 
     companion object {
         private const val TAG = "DeeplinkUsecase"
@@ -16,9 +15,9 @@ class DeeplinkUsecase(private val activity: Activity?, private val channel: Meth
 
     fun doTransaction(call: MethodCall, result: MethodChannel.Result) {
         val amount = call.argument<Double>("amount")
-        val transactionType = call.argument<String>("transactionType")
-        val installmentCount = call.argument<String>("installmentCount")
-        val installmentType = call.argument<String>("installmentType")
+        val transactionType = call.argument<String?>("transactionType")
+        val installmentCount = call.argument<String?>("installmentCount")
+        val installmentType = call.argument<String?>("installmentType")
         val orderId = call.argument<String>("orderId")
 
         if (amount == null || amount <= 0) {
@@ -39,10 +38,18 @@ class DeeplinkUsecase(private val activity: Activity?, private val channel: Meth
                 .appendQueryParameter("return_scheme", "stonepayments")
                 .appendQueryParameter("amount", amountFormatted)
                 .appendQueryParameter("editable_amount", "0")
-                .appendQueryParameter("transaction_type", transactionType)
-                .appendQueryParameter("installment_type", installmentType)
-                .appendQueryParameter("order_id", orderId)
-                .appendQueryParameter("installment_count", installmentCount)
+
+        if(transactionType != null)
+            uriBuilder.appendQueryParameter("transaction_type", transactionType)
+
+        if(installmentType != null)
+            uriBuilder.appendQueryParameter("installment_type", installmentType)
+
+        if(orderId != null)
+            uriBuilder.appendQueryParameter("order_id", orderId)
+
+        if(installmentCount != null)
+            uriBuilder.appendQueryParameter("installment_count", installmentCount)
 
         val intent = Intent(Intent.ACTION_VIEW, uriBuilder.build()).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
@@ -76,6 +83,7 @@ class DeeplinkUsecase(private val activity: Activity?, private val channel: Meth
             .scheme("cancel-app")
             .appendQueryParameter("return_scheme", "stonepayments")
             .appendQueryParameter("amount", amountFormatted)
+            .appendQueryParameter("atk", atk)
             .appendQueryParameter("editable_amount", "0")
 
         val intent = Intent(Intent.ACTION_VIEW, uriBuilder.build()).apply {
