@@ -59,10 +59,10 @@ class MethodChannelStoneDeeplinkPayments extends StoneDeeplinkPaymentsPlatform {
   @override
   Future<void> transaction({
     required double amount,
-    required TypeTransactionEnum transactionType,
-    required String orderId,
-    int installmentCount = 1,
-    TypeInstallmentEnum installmentType = TypeInstallmentEnum.none,
+    TypeTransactionEnum? transactionType,
+    String? orderId,
+    int? installmentCount,
+    TypeInstallmentEnum? installmentType,
   }) async {
     try {
       if (_transactionInProgress) return;
@@ -73,10 +73,10 @@ class MethodChannelStoneDeeplinkPayments extends StoneDeeplinkPaymentsPlatform {
         'transactionDeeplink',
         <String, dynamic>{
           'amount': amount,
-          'transactionType': transactionType.name,
+          'transactionType': transactionType?.name,
           'orderId': orderId,
-          'installmentCount': installmentCount.toString(),
-          'installmentType': installmentType.name,
+          'installmentCount': installmentCount?.toString(),
+          'installmentType': installmentType?.name,
         },
       );
       _transactionInProgress = false;
@@ -97,8 +97,8 @@ class MethodChannelStoneDeeplinkPayments extends StoneDeeplinkPaymentsPlatform {
   /// Throws an exception if an error occurs during platform communication.
   @override
   Future<void> cancel({
-    required double amount,
-    required String? atk,
+    double? amount,
+    String? atk,
   }) async {
     try {
       if (_transactionInProgress) return;

@@ -49,10 +49,10 @@ abstract class StoneDeeplinkPaymentsPlatform {
   /// This method must be implemented by a platform-specific class.
   Future<void> transaction({
     required double amount,
-    required TypeTransactionEnum transactionType,
-    required String orderId,
-    int installmentCount,
-    TypeInstallmentEnum installmentType,
+    TypeTransactionEnum? transactionType,
+    String? orderId,
+    int? installmentCount,
+    TypeInstallmentEnum? installmentType,
   });
 
   /// Processes a refund for a transaction with the provided parameters.
@@ -65,7 +65,7 @@ abstract class StoneDeeplinkPaymentsPlatform {
   ///
   /// This method must be implemented by a platform-specific class.
   Future<void> cancel({
-    required double amount,
-    required String? atk,
+    double? amount,
+    String? atk,
   });
 }

@@ -49,7 +49,7 @@ class _MyAppState extends State<MyApp> {
       this.message.value = message;
     });
 
-    listenDeeplink = StoneDeeplinkPayments.onTransaction.listen((transaction) {
+    listenDeeplink = StoneDeeplinkPayments.onTransactionListener((transaction) {
       if (transaction.success ?? false) {
         transactionSuccefull.value = true;
         transactions.value.add(transaction);
@@ -283,6 +283,7 @@ class _MyAppState extends State<MyApp> {
                           await StoneDeeplinkPayments.transaction(
                             amount: valor,
                             transactionType: TypeTransactionEnum.credit,
+                            installmentCount: 1,
                             orderId: DateTime.now()
                                 .millisecondsSinceEpoch
                                 .toString(),
@@ -310,8 +311,8 @@ class _MyAppState extends State<MyApp> {
                           await StoneDeeplinkPayments.transaction(
                             amount: valor,
                             transactionType: TypeTransactionEnum.credit,
-                            installmentType: TypeInstallmentEnum.none,
-                            installmentCount: 1,
+                            installmentType: TypeInstallmentEnum.merchant,
+                            installmentCount: 2,
                             orderId: DateTime.now()
                                 .millisecondsSinceEpoch
                                 .toString(),
@@ -506,7 +507,7 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  _convertAmountToDouble(String? amount) {
+  double? _convertAmountToDouble(String? amount) {
     if (amount == null) return 0.0;
     if (amount.isEmpty) return 0.0;
     try {
@@ -515,5 +516,6 @@ class _MyAppState extends State<MyApp> {
     } catch (e) {
       log(e.toString());
     }
+    return null;
   }
 }

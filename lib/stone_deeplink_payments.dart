@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:stone_payments/enums/type_installment_enum.dart';
 import 'package:stone_payments/enums/type_transaction_enum.dart';
 import 'package:stone_payments/models/transaction_deeplink.dart';
@@ -12,8 +13,13 @@ import 'package:stone_payments/models/transaction.dart';
 /// This class validates input parameters and delegates operations
 /// to the platform interface [StoneDeeplinkPaymentsPlatform].
 class StoneDeeplinkPayments {
-  static Stream<TransactionDeeplink> get onTransaction =>
-      StoneDeeplinkPaymentsPlatform.onTransaction;
+  static StreamSubscription<TransactionDeeplink> Function(
+    ValueChanged<TransactionDeeplink>?, {
+    bool? cancelOnError,
+    VoidCallback? onDone,
+    Function? onError,
+  }) get onTransactionListener =>
+      StoneDeeplinkPaymentsPlatform.onTransaction.listen;
 
   /// Processes a payment with the provided parameters.
   ///
@@ -32,25 +38,21 @@ class StoneDeeplinkPayments {
   /// - The number of installments is not 1 for debit payment types.
   static Future<void> transaction({
     required double amount,
-    required TypeTransactionEnum transactionType,
-    required String orderId,
-    int installmentCount = 1,
-    TypeInstallmentEnum installmentType = TypeInstallmentEnum.none,
+    TypeTransactionEnum? transactionType,
+    String? orderId,
+    int? installmentCount,
+    TypeInstallmentEnum? installmentType,
   }) async {
-    assert(amount > 0, 'The payment amount must be greater than zero');
-    assert(orderId.isNotEmpty, 'The client identifier cannot be empty');
-    if (transactionType == TypeTransactionEnum.debit) {
-      assert(installmentCount == 1,
-          'Installments must equal 1 for debit payments');
-    }
-
     try {
+      assert(amount > 0, 'Amount must be greater than 0.');
+
       // Delegate the payment process to the platform
       return StoneDeeplinkPaymentsPlatform.instance.transaction(
         amount: amount,
         transactionType: transactionType,
         orderId: orderId,
         installmentCount: installmentCount,
+        installmentType: installmentType,
       );
     } catch (e) {
       // Emit the error through the stream
@@ -69,12 +71,9 @@ class StoneDeeplinkPayments {
   /// Throws an exception if:
   /// - [amount] is less than or equal to 0.
   static Future<void> cancel({
-    required double amount,
-    required String? atk,
+    double? amount,
+    String? atk,
   }) async {
-    assert(amount > 0, 'The refund amount must be greater than zero');
-    assert(atk != null && atk.isNotEmpty, 'The atk is required');
-
     try {
       // Delegate the refund process to the platform
       return StoneDeeplinkPaymentsPlatform.instance.cancel(
