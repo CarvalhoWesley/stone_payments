@@ -205,9 +205,7 @@ class PaymentUsecase(
                         }
                     }
 
-                    val serializableTransaction = SerializableTransactionObject.from(transactionObject)
-
-                    val jsonString = Gson().toJson(serializableTransaction)
+                    val jsonString = Gson().toJson(transactionObject)
                     callback(Result.Success(jsonString))
                 }
 
