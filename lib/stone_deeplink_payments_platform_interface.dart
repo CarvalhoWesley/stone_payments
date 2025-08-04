@@ -53,6 +53,7 @@ abstract class StoneDeeplinkPaymentsPlatform {
     String? orderId,
     int? installmentCount,
     TypeInstallmentEnum? installmentType,
+    String? returnSchema,
   });
 
   /// Processes a refund for a transaction with the provided parameters.
@@ -67,5 +68,6 @@ abstract class StoneDeeplinkPaymentsPlatform {
   Future<void> cancel({
     double? amount,
     String? atk,
+    String? returnSchema,
   });
 }

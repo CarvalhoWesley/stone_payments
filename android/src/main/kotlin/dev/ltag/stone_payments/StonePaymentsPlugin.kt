@@ -90,6 +90,7 @@ class StonePaymentsPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Act
                         call.argument("typeTransaction")!!,
                         call.argument("installment")!!,
                         call.argument("printReceipt"),
+                        
                     ) { resp ->
                         when (resp) {
                             is Result.Success<Boolean> -> result.success(

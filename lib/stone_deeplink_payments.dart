@@ -42,6 +42,7 @@ class StoneDeeplinkPayments {
     String? orderId,
     int? installmentCount,
     TypeInstallmentEnum? installmentType,
+    String? returnSchema,
   }) async {
     try {
       assert(amount > 0, 'Amount must be greater than 0.');
@@ -53,6 +54,7 @@ class StoneDeeplinkPayments {
         orderId: orderId,
         installmentCount: installmentCount,
         installmentType: installmentType,
+        returnSchema: returnSchema,
       );
     } catch (e) {
       // Emit the error through the stream
@@ -73,12 +75,14 @@ class StoneDeeplinkPayments {
   static Future<void> cancel({
     double? amount,
     String? atk,
+    String? returnSchema,
   }) async {
     try {
       // Delegate the refund process to the platform
       return StoneDeeplinkPaymentsPlatform.instance.cancel(
         amount: amount,
         atk: atk,
+        returnSchema: returnSchema,
       );
     } catch (e) {
       // Emit the error through the stream

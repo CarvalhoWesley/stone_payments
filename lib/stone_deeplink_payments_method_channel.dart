@@ -63,6 +63,7 @@ class MethodChannelStoneDeeplinkPayments extends StoneDeeplinkPaymentsPlatform {
     String? orderId,
     int? installmentCount,
     TypeInstallmentEnum? installmentType,
+    String? returnSchema,
   }) async {
     try {
       if (_transactionInProgress) return;
@@ -77,6 +78,7 @@ class MethodChannelStoneDeeplinkPayments extends StoneDeeplinkPaymentsPlatform {
           'orderId': orderId,
           'installmentCount': installmentCount?.toString(),
           'installmentType': installmentType?.name,
+          'returnSchema': returnSchema ?? 'stone_example',
         },
       );
       _transactionInProgress = false;
@@ -99,6 +101,7 @@ class MethodChannelStoneDeeplinkPayments extends StoneDeeplinkPaymentsPlatform {
   Future<void> cancel({
     double? amount,
     String? atk,
+    String? returnSchema,
   }) async {
     try {
       if (_transactionInProgress) return;
@@ -110,6 +113,7 @@ class MethodChannelStoneDeeplinkPayments extends StoneDeeplinkPaymentsPlatform {
         <String, dynamic>{
           'amount': amount,
           'atk': atk,
+          'returnSchema': returnSchema ?? 'stone_example',
         },
       );
       _transactionInProgress = false;

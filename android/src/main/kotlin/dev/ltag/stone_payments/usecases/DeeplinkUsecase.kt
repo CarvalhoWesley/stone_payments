@@ -19,6 +19,7 @@ class DeeplinkUsecase(private val activity: Activity?, private val channel: Meth
         val installmentCount = call.argument<String?>("installmentCount")
         val installmentType = call.argument<String?>("installmentType")
         val orderId = call.argument<String>("orderId")
+        val returnSchema = call.argument<String>("returnSchema") ?: "stone_example"
 
         if (amount == null || amount <= 0) {
             result.error("INVALID_ARGUMENTS", "Invalid amount provided", null)
@@ -35,7 +36,7 @@ class DeeplinkUsecase(private val activity: Activity?, private val channel: Meth
         val uriBuilder = Uri.Builder()
                 .authority("pay")
                 .scheme("payment-app")
-                .appendQueryParameter("return_scheme", "stonepayments")
+                .appendQueryParameter("return_scheme", returnSchema)
                 .appendQueryParameter("amount", amountFormatted)
                 .appendQueryParameter("editable_amount", "0")
 
@@ -65,6 +66,7 @@ class DeeplinkUsecase(private val activity: Activity?, private val channel: Meth
     fun doCancel(call: MethodCall, result: MethodChannel.Result) {
         val amount = call.argument<Double>("amount")
         val atk = call.argument<String>("atk")
+        val returnSchema = call.argument<String>("returnSchema") ?: "stone_example"
 
         if (amount == null || amount <= 0) {
             result.error("INVALID_ARGUMENTS", "Invalid amount provided", null)
@@ -81,7 +83,7 @@ class DeeplinkUsecase(private val activity: Activity?, private val channel: Meth
         val uriBuilder = Uri.Builder()
             .authority("cancel")
             .scheme("cancel-app")
-            .appendQueryParameter("return_scheme", "stonepayments")
+            .appendQueryParameter("return_scheme", returnSchema)
             .appendQueryParameter("amount", amountFormatted)
             .appendQueryParameter("atk", atk)
             .appendQueryParameter("editable_amount", "0")
@@ -112,5 +114,4 @@ class DeeplinkUsecase(private val activity: Activity?, private val channel: Meth
             Log.e(TAG, "No data found in deeplink response")
         }
     }
-
 }
