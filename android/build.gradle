@@ -3,15 +3,15 @@ version '1.0-SNAPSHOT'
 
 buildscript {
     ext {
-        kotlin_version = '1.9.0'
-        stone_sdk_version = '4.10.2'
+        kotlin_version = '2.0.0'
+        stone_sdk_version = '4.12.0'
 
         localProp = new Properties()
         fileName = 'local.properties'
         if (project.rootProject.file(fileName).exists()) {
             localProp.load(new FileInputStream(rootProject.file(fileName)))
         }
-        packageCloudReadToken = System.env.PACKAGECLOUD_READ_TOKEN != null ? System.env.PACKAGECLOUD_READ_TOKEN  : localProp["packageCloudReadToken"] ?: ""
+        packageCloudReadToken = System.env.PACKAGECLOUD_READ_TOKEN != null ? System.env.PACKAGECLOUD_READ_TOKEN  : localProp['packageCloudReadToken'] ?: ''
     }
     repositories {
         google()
@@ -19,7 +19,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.3.0'
+        classpath "com.android.tools.build:gradle:8.3.2"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
@@ -38,19 +38,19 @@ apply plugin: 'kotlin-android'
 android {
     compileSdk 34
 
-    namespace "dev.ltag.stone_payments"
+    namespace 'dev.ltag.stone_payments'
 
     lintOptions {
         disable 'InvalidPackage'
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
 
     sourceSets {
@@ -60,10 +60,16 @@ android {
     defaultConfig {
         minSdk 23
     }
+
+    buildTypes {
+        debug {
+            signingConfig null
+        }
+    }
 }
 
 dependencies {
-    implementation "com.google.code.gson:gson:2.10.1"
+    implementation 'com.google.code.gson:gson:2.10.1'
     implementation "br.com.stone:stone-sdk:$stone_sdk_version"
     implementation "br.com.stone:stone-sdk-posandroid:$stone_sdk_version"
     implementation "br.com.stone:stone-sdk-posandroid-sunmi:$stone_sdk_version"
