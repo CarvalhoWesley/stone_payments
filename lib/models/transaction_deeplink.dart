@@ -75,19 +75,19 @@ class TransactionDeeplink {
     return TransactionDeeplink(
       amount: map['amount'] != null ? map['amount'] as String : null,
       atk: map['atk'] != null ? map['atk'] as String : null,
-      authorizationCode: map['authorizationCode'] != null
-          ? map['authorizationCode'] as String
+      authorizationCode: map['authorization_code'] != null
+          ? map['authorization_code'] as String
           : null,
-      authorizationDateTime: map['authorizationDateTime'] != null
-          ? map['authorizationDateTime'] as String
+      authorizationDateTime: map['authorization_date_time'] != null
+          ? map['authorization_date_time'] as String
           : null,
       brand: map['brand'] != null ? map['brand'] as String : null,
       code: map['code'] != null ? map['code'] as String : null,
-      installmentCount: map['installmentCount'] != null
-          ? map['installmentCount'] as String
+      installmentCount: map['installment_count'] != null
+          ? map['installment_count'] as String
           : null,
       itk: map['itk'] != null ? map['itk'] as String : null,
-      orderId: map['orderId'] != null ? map['orderId'] as String : null,
+      orderId: map['order_id'] != null ? map['order_id'] as String : null,
       pan: map['pan'] != null ? map['pan'] as String : null,
       success: map['success'] != null ? (map['success'] == "true") : null,
       type: map['type'] != null ? map['type'] as String : null,
