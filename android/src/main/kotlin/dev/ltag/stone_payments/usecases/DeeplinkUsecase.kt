@@ -99,6 +99,36 @@ class DeeplinkUsecase(private val activity: Activity?, private val channel: Meth
         }
     }
 
+    fun doPrint(call: MethodCall, result: MethodChannel.Result) {
+        val printableContent = call.argument<String>("printableContent")
+        val showFeedbackScreen = call.argument<Boolean>("showFeedbackScreen") ?: true
+        val returnSchema = call.argument<String>("returnSchema") ?: "stone_example"
+
+        if (printableContent.isNullOrEmpty()) {
+            result.error("INVALID_ARGUMENTS", "Required arguments are missing", null)
+            return
+        }
+
+        val uriBuilder = Uri.Builder()
+            .authority("print")
+            .scheme("printer-app")
+            .appendQueryParameter("SHOW_FEEDBACK_SCREEN", showFeedbackScreen.toString())
+            .appendQueryParameter("SCHEME_RETURN", returnSchema)
+            .appendQueryParameter("PRINTABLE_CONTENT", printableContent)
+
+        val intent = Intent(Intent.ACTION_VIEW, uriBuilder.build()).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+
+        try {
+            activity?.startActivity(intent)
+            result.success("started")
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro ao iniciar deeplink", e)
+            result.error("PRINT_ERROR", "Erro ao iniciar deeplink", e.toString())
+        }
+    }
+
     fun handleDeeplinkResponse(intent: Intent?) {
         intent?.data?.let { uri ->
             val response = mutableMapOf<String, String>()

@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:stone_payments/enums/item_print_type_enum.dart';
 import 'package:stone_payments/enums/type_installment_enum.dart';
 import 'package:stone_payments/enums/type_transaction_enum.dart';
+import 'package:stone_payments/models/item_print_model.dart';
 import 'package:stone_payments/models/transaction.dart';
 import 'package:stone_payments/models/transaction_deeplink.dart';
 
@@ -121,5 +124,50 @@ class MethodChannelStoneDeeplinkPayments extends StoneDeeplinkPaymentsPlatform {
       _transactionInProgress = false;
       rethrow;
     }
+  }
+
+  @override
+  Future<void> print({
+    required List<ItemPrintModel> items,
+    bool showFeedbackScreen = true,
+    String? returnSchema,
+  }) async {
+    try {
+      if (_transactionInProgress) return;
+
+      _transactionInProgress = true;
+
+      await methodChannel.invokeMethod(
+        'printDeeplink',
+        <String, dynamic>{
+          'showFeedbackScreen': showFeedbackScreen,
+          'returnSchema': returnSchema ?? 'stone_example',
+          'printableContent': _buildPrintableContent(items),
+        },
+      );
+      _transactionInProgress = false;
+    } catch (e) {
+      _transactionInProgress = false;
+      rethrow;
+    }
+  }
+
+  String _buildPrintableContent(List<ItemPrintModel> items) {
+    final printableItems = items.map<Map<String, String>>((item) {
+      switch (item.type) {
+        case ItemPrintTypeEnum.text:
+          return <String, String>{
+            'type': 'text',
+            'content': item.data,
+          };
+        case ItemPrintTypeEnum.image:
+          return <String, String>{
+            'type': 'image',
+            'imagePath': item.data,
+          };
+      }
+    }).toList();
+
+    return jsonEncode(printableItems);
   }
 }

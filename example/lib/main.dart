@@ -424,6 +424,46 @@ class _MyAppState extends State<MyApp> {
                   },
                   child: const Text('Teste de Impressão'),
                 ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: () async {
+                    FocusScope.of(context).unfocus();
+                    if (valueController.text.isEmpty) return;
+
+                    try {
+                      final byteData =
+                          await rootBundle.load('assets/flutter5786.png');
+                      final imgBase64 =
+                          base64Encode(byteData.buffer.asUint8List());
+
+                      final items = [
+                        const ItemPrintModel(
+                          type: ItemPrintTypeEnum.text,
+                          data: 'Teste Título',
+                        ),
+                        const ItemPrintModel(
+                          type: ItemPrintTypeEnum.text,
+                          data: 'Teste Subtítulo',
+                        ),
+                        // ItemPrintModel(
+                        //   type: ItemPrintTypeEnum.image,
+                        //   data: imgBase64,
+                        // ),
+                        // if (image != null)
+                        //   ItemPrintModel(
+                        //     type: ItemPrintTypeEnum.image,
+                        //     data: base64Encode(image!.toList()),
+                        //   ),
+                      ];
+
+                      await StoneDeeplinkPayments.print(items: items);
+                      message.value = "Impressão via deeplink iniciada";
+                    } catch (e) {
+                      message.value = "Falha na impressão via deeplink";
+                    }
+                  },
+                  child: const Text('Teste de Impressão via Deeplink'),
+                ),
                 ValueListenableBuilder(
                     valueListenable: transactionSuccefull,
                     builder: (context, transactionSuccefull, child) {

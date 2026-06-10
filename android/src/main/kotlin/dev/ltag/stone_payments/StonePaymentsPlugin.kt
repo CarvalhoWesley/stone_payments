@@ -221,6 +221,9 @@ class StonePaymentsPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Act
                 deeplinkUsecase?.doCancel(call, result)
                 result.success("started")
             }
+            "printDeeplink" -> {
+                deeplinkUsecase?.doPrint(call, result)
+            }
             else -> {
                 result.notImplemented()
             }
@@ -234,6 +237,11 @@ class StonePaymentsPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Act
     private fun handleNewIntent(intent: Intent): Boolean {
         Log.d("StonePaymentsPlugin", "onNewIntent received: ${intent.data}")
         return intent.data?.let {
+            val dataString = it.toString()
+            if (dataString.contains("PRINTER_") || dataString.contains("SUCCESS")) {
+                Log.d("StonePaymentsPlugin", "Print deeplink response received: $dataString")
+                return true
+            }
             deeplinkUsecase?.handleDeeplinkResponse(intent)
             true
         } ?: false

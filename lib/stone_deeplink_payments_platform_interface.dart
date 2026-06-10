@@ -1,5 +1,6 @@
 import 'package:stone_payments/enums/type_installment_enum.dart';
 import 'package:stone_payments/enums/type_transaction_enum.dart';
+import 'package:stone_payments/models/item_print_model.dart';
 import 'package:stone_payments/models/transaction_deeplink.dart';
 import 'package:stone_payments/stone_deeplink_payments_method_channel.dart';
 import 'package:stone_payments/models/transaction.dart';
@@ -68,6 +69,13 @@ abstract class StoneDeeplinkPaymentsPlatform {
   Future<void> cancel({
     double? amount,
     String? atk,
+    String? returnSchema,
+  });
+
+  /// Sends a custom print job via deeplink.
+  Future<void> print({
+    required List<ItemPrintModel> items,
+    bool showFeedbackScreen,
     String? returnSchema,
   });
 }

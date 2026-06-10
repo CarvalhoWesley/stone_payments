@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:stone_payments/models/item_print_model.dart';
 import 'package:stone_payments/enums/type_installment_enum.dart';
 import 'package:stone_payments/enums/type_transaction_enum.dart';
 import 'package:stone_payments/models/transaction_deeplink.dart';
@@ -86,6 +87,23 @@ class StoneDeeplinkPayments {
       );
     } catch (e) {
       // Emit the error through the stream
+      rethrow;
+    }
+  }
+
+  /// Sends a custom print job through the Stone deeplink flow.
+  static Future<void> print({
+    required List<ItemPrintModel> items,
+    bool showFeedbackScreen = true,
+    String? returnSchema,
+  }) async {
+    try {
+      return StoneDeeplinkPaymentsPlatform.instance.print(
+        items: items,
+        showFeedbackScreen: showFeedbackScreen,
+        returnSchema: returnSchema,
+      );
+    } catch (e) {
       rethrow;
     }
   }

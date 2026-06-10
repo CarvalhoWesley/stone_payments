@@ -43,10 +43,10 @@ class ActivateUsecase(
                     // Ocorreu algum erro na ativação
 
                     Log.d("ERROR", "ERRO")
-                    callback(Result.Error(Exception("Erro ao Ativar")))
+                    callback(Result.Error(Exception("Erro ao ativar StoneCode")))
                 }
             }
-            activeApplicationProvider.activate(stoneCode)
+            // activeApplicationProvider.activate(stoneCode)
         } else {
             // O SDK já foi ativado.
 
