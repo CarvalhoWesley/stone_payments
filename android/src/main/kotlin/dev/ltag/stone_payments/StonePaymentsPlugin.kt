@@ -26,6 +26,7 @@ class StonePaymentsPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Act
     var paymentUsecase: PaymentUsecase? = null
     var printerUsecase: PrinterUsecase? = null
     var deeplinkUsecase: DeeplinkUsecase? = null
+    var mifareUsecase: MifareUsecase? = null
 
     companion object {
         var flutterBinaryMessenger: BinaryMessenger? = null
@@ -39,6 +40,7 @@ class StonePaymentsPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Act
         // Inicialize as propriedades aqui
         paymentUsecase = PaymentUsecase(this)
         printerUsecase = PrinterUsecase(this)
+        mifareUsecase = MifareUsecase(context)
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
@@ -224,6 +226,43 @@ class StonePaymentsPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Act
             "printDeeplink" -> {
                 deeplinkUsecase?.doPrint(call, result)
             }
+            "mifareDetectCard" -> mifareUsecase!!.detectCard({ mifareResult(it, result) })
+            "mifareAuthenticateSector" -> mifareUsecase!!.authenticateSector(
+                call.argument("keyType")!!,
+                call.argument("key")!!,
+                call.argument("sector")!!,
+            ) { mifareResult(it, result) }
+            "mifareReadBlock" -> mifareUsecase!!.readBlock(
+                call.argument("sector")!!,
+                call.argument("block")!!,
+            ) { mifareResult(it, result) }
+            "mifareWriteBlock" -> mifareUsecase!!.writeBlock(
+                call.argument("sector")!!,
+                call.argument("block")!!,
+                call.argument("data")!!,
+            ) { mifareResult(it, result) }
+            "mifareBackupBlock" -> mifareUsecase!!.backupBlock(
+                call.argument("sector")!!,
+                call.argument("srcBlock")!!,
+                call.argument("dstBlock")!!,
+            ) { mifareResult(it, result) }
+            "mifareRestoreBlock" -> mifareUsecase!!.restoreBlock(
+                call.argument("sector")!!,
+                call.argument("srcBlock")!!,
+                call.argument("dstBlock")!!,
+            ) { mifareResult(it, result) }
+            "mifareIncrementValue" -> mifareUsecase!!.incrementValue(
+                call.argument("sector")!!,
+                call.argument("block")!!,
+                call.argument("value")!!,
+            ) { mifareResult(it, result) }
+            "mifareDecrementValue" -> mifareUsecase!!.decrementValue(
+                call.argument("sector")!!,
+                call.argument("block")!!,
+                call.argument("value")!!,
+            ) { mifareResult(it, result) }
+            "mifarePowerOff" -> mifareUsecase!!.powerOff { mifareResult(it, result) }
+            "mifareCancelDetection" -> mifareUsecase!!.cancelDetection { mifareResult(it, result) }
             else -> {
                 result.notImplemented()
             }
@@ -232,6 +271,13 @@ class StonePaymentsPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Act
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
+    }
+
+    private fun <T> mifareResult(resp: Result<T>, result: Res) {
+        when (resp) {
+            is Result.Success<T> -> result.success(resp.data)
+            is Result.Error -> result.error("MIFARE_ERROR", resp.exception.message, resp.exception.toString())
+        }
     }
 
     private fun handleNewIntent(intent: Intent): Boolean {

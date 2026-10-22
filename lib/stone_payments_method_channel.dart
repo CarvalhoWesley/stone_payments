@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:stone_payments/enums/mifare_key_type_enum.dart';
 import 'package:stone_payments/enums/status_transaction_enum.dart';
 import 'package:stone_payments/enums/type_owner_print_enum.dart';
+import 'package:stone_payments/models/mifare_card.dart';
 import 'package:stone_payments/models/transaction.dart';
 
 import 'enums/type_transaction_enum.dart';
@@ -234,5 +236,135 @@ class MethodChannelStonePayments extends StonePaymentsPlatform {
     _transactionInProgress = false;
 
     return Transaction.fromJson(result);
+  }
+
+  @override
+  Future<MifareCard?> mifareDetectCard() async {
+    final result = await methodChannel.invokeMethod<Map>('mifareDetectCard');
+    if (result == null) {
+      return null;
+    }
+
+    return MifareCard.fromMap(result);
+  }
+
+  @override
+  Future<void> mifareAuthenticateSector({
+    required MifareKeyTypeEnum keyType,
+    required Uint8List key,
+    required int sector,
+  }) async {
+    await methodChannel.invokeMethod<bool>(
+      'mifareAuthenticateSector',
+      <String, dynamic>{
+        'keyType': keyType.value,
+        'key': key,
+        'sector': sector,
+      },
+    );
+  }
+
+  @override
+  Future<Uint8List?> mifareReadBlock({
+    required int sector,
+    required int block,
+  }) async {
+    return methodChannel.invokeMethod<Uint8List>(
+      'mifareReadBlock',
+      <String, dynamic>{
+        'sector': sector,
+        'block': block,
+      },
+    );
+  }
+
+  @override
+  Future<void> mifareWriteBlock({
+    required int sector,
+    required int block,
+    required Uint8List data,
+  }) async {
+    await methodChannel.invokeMethod<bool>(
+      'mifareWriteBlock',
+      <String, dynamic>{
+        'sector': sector,
+        'block': block,
+        'data': data,
+      },
+    );
+  }
+
+  @override
+  Future<void> mifareBackupBlock({
+    required int sector,
+    required int srcBlock,
+    required int dstBlock,
+  }) async {
+    await methodChannel.invokeMethod<bool>(
+      'mifareBackupBlock',
+      <String, dynamic>{
+        'sector': sector,
+        'srcBlock': srcBlock,
+        'dstBlock': dstBlock,
+      },
+    );
+  }
+
+  @override
+  Future<void> mifareRestoreBlock({
+    required int sector,
+    required int srcBlock,
+    required int dstBlock,
+  }) async {
+    await methodChannel.invokeMethod<bool>(
+      'mifareRestoreBlock',
+      <String, dynamic>{
+        'sector': sector,
+        'srcBlock': srcBlock,
+        'dstBlock': dstBlock,
+      },
+    );
+  }
+
+  @override
+  Future<void> mifareIncrementValue({
+    required int sector,
+    required int block,
+    required int value,
+  }) async {
+    await methodChannel.invokeMethod<bool>(
+      'mifareIncrementValue',
+      <String, dynamic>{
+        'sector': sector,
+        'block': block,
+        'value': value,
+      },
+    );
+  }
+
+  @override
+  Future<void> mifareDecrementValue({
+    required int sector,
+    required int block,
+    required int value,
+  }) async {
+    await methodChannel.invokeMethod<bool>(
+      'mifareDecrementValue',
+      <String, dynamic>{
+        'sector': sector,
+        'block': block,
+        'value': value,
+      },
+    );
+  }
+
+  @override
+  Future<void> mifarePowerOff() async {
+    await methodChannel.invokeMethod<bool>('mifarePowerOff');
+  }
+
+  @override
+  Future<void> mifareCancelDetection() async {
+    await methodChannel.invokeMethod<bool>('mifareCancelDetection');
   }
 }

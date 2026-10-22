@@ -1,11 +1,13 @@
 import 'dart:async';
 
-import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
+import 'package:stone_payments/enums/mifare_key_type_enum.dart';
 import 'package:stone_payments/enums/type_owner_print_enum.dart';
 import 'package:stone_payments/models/transaction.dart';
 
 import 'enums/type_transaction_enum.dart';
 import 'models/item_print_model.dart';
+import 'models/mifare_card.dart';
 import 'stone_payments_platform_interface.dart';
 
 /// Classe responsável por interagir com a plataforma de pagamentos da Stone.
@@ -175,7 +177,8 @@ class StonePayments {
     required String initiatorTransactionKey,
     bool? printReceipt,
   }) {
-    assert(initiatorTransactionKey != "", 'A chave da transação deve ser válida.');
+    assert(
+        initiatorTransactionKey != "", 'A chave da transação deve ser válida.');
 
     return StonePaymentsPlatform.instance.cancelPayment(
       initiatorTransactionKey: initiatorTransactionKey,
@@ -225,5 +228,129 @@ class StonePayments {
       authorizationCode: authorizationCode,
       printReceipt: printReceipt,
     );
+  }
+
+  /// Aguarda a aproximação de um cartão Mifare e o ativa (PosMifareProvider).
+  ///
+  /// Após as operações no cartão, chame [mifarePowerOff].
+  ///
+  /// Retorna:
+  ///
+  /// * Uma `Future<MifareCard?>` com o UID e as propriedades do cartão.
+  static Future<MifareCard?> mifareDetectCard() {
+    return StonePaymentsPlatform.instance.mifareDetectCard();
+  }
+
+  /// Autentica um setor do cartão Mifare.
+  ///
+  /// Parâmetros:
+  ///
+  /// * `keyType` (required) - Tipo da chave (A ou B).
+  /// * `key` (required) - Chave de 6 bytes.
+  /// * `sector` (required) - Setor a ser autenticado.
+  static Future<void> mifareAuthenticateSector({
+    required MifareKeyTypeEnum keyType,
+    required Uint8List key,
+    required int sector,
+  }) {
+    assert(key.length == 6, 'A chave Mifare deve ter 6 bytes.');
+
+    return StonePaymentsPlatform.instance.mifareAuthenticateSector(
+      keyType: keyType,
+      key: key,
+      sector: sector,
+    );
+  }
+
+  /// Lê um bloco (16 bytes) de um setor autenticado.
+  static Future<Uint8List?> mifareReadBlock({
+    required int sector,
+    required int block,
+  }) {
+    return StonePaymentsPlatform.instance.mifareReadBlock(
+      sector: sector,
+      block: block,
+    );
+  }
+
+  /// Escreve um bloco (16 bytes) em um setor autenticado.
+  static Future<void> mifareWriteBlock({
+    required int sector,
+    required int block,
+    required Uint8List data,
+  }) {
+    assert(data.length == 16, 'O bloco Mifare deve ter 16 bytes.');
+
+    return StonePaymentsPlatform.instance.mifareWriteBlock(
+      sector: sector,
+      block: block,
+      data: data,
+    );
+  }
+
+  /// Faz backup de um bloco de valor de `srcBlock` para `dstBlock`.
+  static Future<void> mifareBackupBlock({
+    required int sector,
+    required int srcBlock,
+    required int dstBlock,
+  }) {
+    return StonePaymentsPlatform.instance.mifareBackupBlock(
+      sector: sector,
+      srcBlock: srcBlock,
+      dstBlock: dstBlock,
+    );
+  }
+
+  /// Restaura um bloco de valor de `srcBlock` para `dstBlock`.
+  static Future<void> mifareRestoreBlock({
+    required int sector,
+    required int srcBlock,
+    required int dstBlock,
+  }) {
+    return StonePaymentsPlatform.instance.mifareRestoreBlock(
+      sector: sector,
+      srcBlock: srcBlock,
+      dstBlock: dstBlock,
+    );
+  }
+
+  /// Incrementa um bloco de valor. O SDK aceita `value` de 1 byte (0 a 127).
+  static Future<void> mifareIncrementValue({
+    required int sector,
+    required int block,
+    required int value,
+  }) {
+    assert(value >= 0 && value <= 127, 'O valor deve estar entre 0 e 127.');
+
+    return StonePaymentsPlatform.instance.mifareIncrementValue(
+      sector: sector,
+      block: block,
+      value: value,
+    );
+  }
+
+  /// Decrementa um bloco de valor. O SDK aceita `value` de 1 byte (0 a 127).
+  static Future<void> mifareDecrementValue({
+    required int sector,
+    required int block,
+    required int value,
+  }) {
+    assert(value >= 0 && value <= 127, 'O valor deve estar entre 0 e 127.');
+
+    return StonePaymentsPlatform.instance.mifareDecrementValue(
+      sector: sector,
+      block: block,
+      value: value,
+    );
+  }
+
+  /// Desliga o cartão Mifare e encerra a sessão.
+  static Future<void> mifarePowerOff() {
+    return StonePaymentsPlatform.instance.mifarePowerOff();
+  }
+
+  /// Cancela a detecção de cartão Mifare em andamento.
+  static Future<void> mifareCancelDetection() {
+    return StonePaymentsPlatform.instance.mifareCancelDetection();
   }
 }
