@@ -143,21 +143,41 @@ class _MifareEventTabState extends State<MifareEventTab>
       ),
       Section(
         title: 'Formatar',
-        hint: 'Apaga todos os dados do evento. O cartão volta a ficar fechado.',
+        hint: 'Evento: zera só os blocos do cartão de evento. Cartão inteiro: '
+            'zera os 47 blocos de dados. Nos dois, o cartão volta a ficar fechado.',
         children: [
           ActionWrap(children: [
             ActionButton(
-              label: 'Formatar cartão',
-              icon: Icons.delete_forever,
+              label: 'Formatar evento',
+              icon: Icons.delete_outline,
               danger: true,
               onPressed: enabled
                   ? () async {
                       if (await confirm(context,
-                          'Formatar apaga todos os dados do cartão. Continuar?')) {
-                        run('Formatar', () async {
+                          'Formatar zera os blocos do cartão de evento (1, 2, 4, 5, 6, 8, 9 e 12). Continuar?')) {
+                        run('Formatar evento', () async {
                           await StoneMifareCashless.format();
                           if (mounted) setState(() => _card = null);
                           return null;
+                        });
+                      }
+                    }
+                  : null,
+            ),
+            ActionButton(
+              label: 'Formatar cartão inteiro',
+              icon: Icons.delete_forever,
+              danger: true,
+              onPressed: enabled
+                  ? () async {
+                      if (await confirm(
+                          context,
+                          'Formatar zera TODOS os 47 blocos de dados do cartão (evento e setores 4 a 15). '
+                          'Bloco 0 e chaves não são alterados. Continuar?')) {
+                        run('Formatar cartão inteiro', () async {
+                          final cleared = await StoneMifareCashless.formatAll();
+                          if (mounted) setState(() => _card = null);
+                          return '$cleared blocos zerados';
                         });
                       }
                     }

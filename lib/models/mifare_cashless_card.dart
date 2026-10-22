@@ -49,7 +49,8 @@ class MifareCashlessCard {
 /// Erro de regra do cartão de evento.
 ///
 /// Códigos possíveis: `cartao_ja_aberto`, `cartao_nao_aberto`,
-/// `evento_nao_compativel`, `saldo_insuficiente`, `valor_invalido`.
+/// `evento_nao_compativel`, `saldo_insuficiente`, `valor_invalido`,
+/// `formatacao_incompleta`.
 class MifareCashlessException implements Exception {
   /// Código do erro.
   final String code;

@@ -15,6 +15,11 @@ import 'package:stone_payments/stone_payments_platform_interface.dart';
 class MockStonePaymentsPlatform
     with MockPlatformInterfaceMixin
     implements StonePaymentsPlatform {
+  // Métodos não usados nestes testes (ex.: mifare*) caem aqui
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      super.noSuchMethod(invocation);
+
   @override
   Future<String?> activateStone({
     required String appName,

@@ -156,9 +156,13 @@ class MethodChannelStoneDeeplinkPayments extends StoneDeeplinkPaymentsPlatform {
     final printableItems = items.map<Map<String, String>>((item) {
       switch (item.type) {
         case ItemPrintTypeEnum.text:
+          // align e size são obrigatórios para "text": sem eles o app da Stone
+          // fecha com NullPointerException ao imprimir.
           return <String, String>{
             'type': 'text',
             'content': item.data,
+            'align': 'left',
+            'size': 'medium',
           };
         case ItemPrintTypeEnum.image:
           return <String, String>{

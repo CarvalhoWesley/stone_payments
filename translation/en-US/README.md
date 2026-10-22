@@ -15,7 +15,7 @@ To use this package, add `stone_payments` as a dependency in your `pubspec.yaml`
 
 ```yaml
 dependencies:
-  stone_payments: ^1.0.0
+  stone_payments: ^1.2.0
 ```
 
 Then, run `flutter pub get` to install the package.

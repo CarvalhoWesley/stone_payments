@@ -88,8 +88,10 @@ class _MifareBlocksTabState extends State<MifareBlocksTab>
               icon: Icons.edit,
               onPressed: enabled
                   ? () => run('Gravar bloco $_blockNum', () async {
-                        await MifareSession.writeText(_blockNum, _text.text);
-                        return 'gravado';
+                        final data = await MifareSession.writeText(
+                            _blockNum, _text.text);
+                        return 'gravado e conferido: "${MifareSession.toText(data)}" '
+                            '| ${MifareSession.toHex(data)}';
                       })
                   : null,
             ),
