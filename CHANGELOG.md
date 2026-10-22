@@ -1,3 +1,12 @@
+## v1.2.0
+
+- New Mifare provider methods (`mifareDetectCard`, `mifareAuthenticateSector`, `mifareReadBlock`, `mifareWriteBlock`, value block operations, `mifarePowerOff`, `mifareCancelDetection`);
+- New `StoneMifareCashless` with ready-made event card methods (`readCard`, `openCard`, `recharge`, `debit`, `refund`, `format`), using the same block layout as pagseguro_smart_flutter;
+- New `StoneMifareCashless.formatAll`: clears all 47 data blocks of a Mifare Classic 1K (block 0 and sector trailers are never touched). `format` keeps clearing only the event blocks;
+- Fix: print deeplink now sends the required `align` and `size` for text items (the Stone app crashed without them);
+- Updated Stone SDK version (4.20.16). Apps must enable core library desugaring (`desugar_jdk_libs` 2.1.5+);
+- Example app reorganized into Provider, Deeplink, Mifare and Logs areas, with a central log;
+
 ## v1.0.0
 
 - New method `cancelPayment`;

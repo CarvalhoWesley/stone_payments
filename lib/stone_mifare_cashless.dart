@@ -147,6 +147,36 @@ class StoneMifareCashless {
     });
   }
 
+  /// Zera TODOS os 47 blocos de dados do Mifare Classic 1K numa única aproximação.
+  ///
+  /// Apaga também dados gravados fora do layout do evento. Nunca altera o
+  /// bloco 0 (fabricante) nem os trailers 3, 7, 11... 63 (chaves e permissões).
+  /// Cada setor é autenticado com [key] antes da gravação.
+  ///
+  /// Não é atômico: se um setor falhar, lança `formatacao_incompleta` informando
+  /// o setor e quantos blocos já foram zerados. Retorna a quantidade de blocos zerados.
+  static Future<int> formatAll({Uint8List? key}) {
+    return _session(key, (s) async {
+      var cleared = 0;
+      for (var sector = 0; sector < 16; sector++) {
+        for (var relative = 0; relative < 3; relative++) {
+          final block = sector * 4 + relative;
+          if (block == 0) continue;
+          try {
+            await s.write(block, Uint8List(16));
+          } on PlatformException catch (e) {
+            throw MifareCashlessException(
+                'formatacao_incompleta',
+                'Falha no setor $sector (bloco $block): ${e.message}. '
+                    '$cleared blocos já foram zerados');
+          }
+          cleared++;
+        }
+      }
+      return cleared;
+    });
+  }
+
   // ===== Internos =====
 
   static Future<T> _session<T>(

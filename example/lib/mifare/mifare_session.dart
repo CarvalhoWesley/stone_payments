@@ -74,17 +74,28 @@ class MifareSession {
             Uint8List(0);
       });
 
-  static Future<void> writeText(int block, String text) {
+  /// Grava o texto e relê o bloco na mesma aproximação para conferir.
+  /// Retorna o conteúdo lido; lança erro se não bater com o que foi gravado.
+  static Future<Uint8List> writeText(int block, String text) {
     final bytes = utf8.encode(text);
     if (bytes.length > 16) throw 'O texto deve ter no máximo 16 bytes';
-    return withCard(
-      block,
-      () => StonePayments.mifareWriteBlock(
+    final data = Uint8List(16)..setAll(0, bytes);
+    return withCard(block, () async {
+      await StonePayments.mifareWriteBlock(
         sector: sectorOf(block),
         block: relativeOf(block),
-        data: Uint8List(16)..setAll(0, bytes),
-      ),
-    );
+        data: data,
+      );
+      final readBack = await StonePayments.mifareReadBlock(
+            sector: sectorOf(block),
+            block: relativeOf(block),
+          ) ??
+          Uint8List(0);
+      if (toHex(readBack) != toHex(data)) {
+        throw 'Gravação não confirmada: lido ${toHex(readBack)}';
+      }
+      return readBack;
+    });
   }
 
   /// Executa uma operação de bloco de valor; origem e destino no mesmo setor.

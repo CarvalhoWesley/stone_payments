@@ -15,7 +15,7 @@ Para usar este pacote, adicione `stone_payments` como uma dependência em seu ar
 
 ```yaml
 dependencies:
-  stone_payments: ^1.0.0
+  stone_payments: ^1.2.0
 ```
 
 Em seguida, execute `flutter pub get` para instalar o pacote.
@@ -30,6 +30,20 @@ O minSdkVersion deve ser igual ou maior que 23
 
 ```
 minSdkVersion=23
+```
+
+A partir da versão 1.2.0 (SDK Stone 4.20.16) é obrigatório ativar o core library desugaring no `android/app/build.gradle` do app:
+
+```gradle
+android {
+    compileOptions {
+        coreLibraryDesugaringEnabled true
+    }
+}
+
+dependencies {
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
+}
 ```
 
 ##### Atenção!

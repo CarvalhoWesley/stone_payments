@@ -16,9 +16,13 @@ class _DeeplinkPrintTabState extends State<DeeplinkPrintTab> with ActionRunner {
   @override
   LogSource get logSource => LogSource.deeplink;
 
+  bool _showFeedbackScreen = true;
+
   Future<String?> _print({required bool withImage}) async {
     await StoneDeeplinkPayments.print(
-        items: await samplePrintItems(withImage: withImage));
+      items: await samplePrintItems(withImage: withImage),
+      showFeedbackScreen: _showFeedbackScreen,
+    );
     return 'impressão enviada ao app da Stone';
   }
 
@@ -28,9 +32,20 @@ class _DeeplinkPrintTabState extends State<DeeplinkPrintTab> with ActionRunner {
     return ActionPage(busy: busy, children: [
       Section(
         title: 'Impressão via deeplink',
-        hint: 'O app da Stone faz a impressão e mostra a tela de confirmação. '
+        hint: 'O app da Stone faz a impressão. '
             'Imagens grandes podem passar do limite do deeplink.',
         children: [
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Mostrar tela de confirmação'),
+            subtitle: const Text(
+                'showFeedbackScreen: o app da Stone exibe o resultado da impressão antes de voltar'),
+            value: _showFeedbackScreen,
+            onChanged: busy
+                ? null
+                : (value) => setState(() => _showFeedbackScreen = value),
+          ),
+          const SizedBox(height: 8),
           ActionWrap(children: [
             ActionButton(
               label: 'Imprimir texto',

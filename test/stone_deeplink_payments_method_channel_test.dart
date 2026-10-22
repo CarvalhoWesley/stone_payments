@@ -58,6 +58,8 @@ void main() {
     expect(printableContent[0], {
       'type': 'text',
       'content': 'Hello',
+      'align': 'left',
+      'size': 'medium',
     });
     expect(printableContent[1], {
       'type': 'image',
