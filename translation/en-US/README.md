@@ -32,6 +32,20 @@ The minSdkVersion must be 23 or higher.
 minSdkVersion=23
 ```
 
+Starting with version 1.2.0 (Stone SDK 4.20.16), core library desugaring must be enabled in the app's `android/app/build.gradle`:
+
+```gradle
+android {
+    compileOptions {
+        coreLibraryDesugaringEnabled true
+    }
+}
+
+dependencies {
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
+}
+```
+
 ##### Note!
 
 ###### Supported Devices:
@@ -164,6 +178,61 @@ await StonePayments.print([
   ],
 );
 ```
+
+#### 5. Mifare card (event cashless)
+
+For ready-made event card operations, use `StoneMifareCashless`. Each method waits for the card, authenticates, reads/writes and powers the card off at the end. The block layout is the same as `pagseguro_smart_flutter`, so cards are compatible between both terminals.
+
+```dart
+import 'package:stone_payments/stone_mifare_cashless.dart';
+
+try {
+  // Opens the card with an initial balance
+  await StoneMifareCashless.openCard(
+    value: 100.0,
+    eventId: 'EVT001',
+    name: 'Fulano',
+    cpf: '12345678900',
+    cellPhone: '11999999999',
+  );
+
+  final card = await StoneMifareCashless.readCard(eventId: 'EVT001');
+  print('${card.name}: ${card.value}');
+
+  await StoneMifareCashless.recharge(value: 50.0, eventId: 'EVT001');
+  await StoneMifareCashless.debit(value: 25.0, eventId: 'EVT001');
+  await StoneMifareCashless.refund(value: 25.0, eventId: 'EVT001');
+
+  // Clears only the event blocks
+  await StoneMifareCashless.format();
+  // Clears all 47 data blocks (block 0 and trailers are never touched)
+  await StoneMifareCashless.formatAll();
+} on MifareCashlessException catch (e) {
+  // cartao_ja_aberto, cartao_nao_aberto, evento_nao_compativel,
+  // saldo_insuficiente, valor_invalido, formatacao_incompleta
+  print('${e.code}: ${e.message}');
+}
+```
+
+All methods accept an optional `key` (6 bytes); the default is `FF FF FF FF FF FF`.
+
+For low-level access, use the `mifare*` methods of `StonePayments`:
+
+```dart
+final card = await StonePayments.mifareDetectCard();
+print(card?.uuidHex);
+
+await StonePayments.mifareAuthenticateSector(
+  keyType: MifareKeyTypeEnum.typeA,
+  key: Uint8List.fromList(List.filled(6, 0xFF)),
+  sector: 1,
+);
+final data = await StonePayments.mifareReadBlock(sector: 1, block: 0);
+await StonePayments.mifareWriteBlock(sector: 1, block: 0, data: Uint8List(16));
+await StonePayments.mifarePowerOff();
+```
+
+`mifareBackupBlock`, `mifareRestoreBlock`, `mifareIncrementValue`, `mifareDecrementValue` (value from 0 to 127) and `mifareCancelDetection` are also available.
 
 ## Example
 

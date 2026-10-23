@@ -179,6 +179,61 @@ await StonePayments.print([
 );
 ```
 
+#### 5. Cartão Mifare (cashless de evento)
+
+Para operações prontas de cartão de evento, use `StoneMifareCashless`. Cada método aguarda o cartão, autentica, lê/grava e desliga o cartão no final. O layout de blocos é o mesmo do `pagseguro_smart_flutter`, então o cartão é compatível entre os dois terminais.
+
+```dart
+import 'package:stone_payments/stone_mifare_cashless.dart';
+
+try {
+  // Abre o cartão com saldo inicial
+  await StoneMifareCashless.openCard(
+    value: 100.0,
+    eventId: 'EVT001',
+    name: 'Fulano',
+    cpf: '12345678900',
+    cellPhone: '11999999999',
+  );
+
+  final card = await StoneMifareCashless.readCard(eventId: 'EVT001');
+  print('${card.name}: ${card.value}');
+
+  await StoneMifareCashless.recharge(value: 50.0, eventId: 'EVT001');
+  await StoneMifareCashless.debit(value: 25.0, eventId: 'EVT001');
+  await StoneMifareCashless.refund(value: 25.0, eventId: 'EVT001');
+
+  // Apaga só os blocos do evento
+  await StoneMifareCashless.format();
+  // Zera todos os 47 blocos de dados (bloco 0 e trailers não são alterados)
+  await StoneMifareCashless.formatAll();
+} on MifareCashlessException catch (e) {
+  // cartao_ja_aberto, cartao_nao_aberto, evento_nao_compativel,
+  // saldo_insuficiente, valor_invalido, formatacao_incompleta
+  print('${e.code}: ${e.message}');
+}
+```
+
+Todos os métodos aceitam `key` (6 bytes) opcional; o padrão é `FF FF FF FF FF FF`.
+
+Para acesso de baixo nível, use os métodos `mifare*` de `StonePayments`:
+
+```dart
+final card = await StonePayments.mifareDetectCard();
+print(card?.uuidHex);
+
+await StonePayments.mifareAuthenticateSector(
+  keyType: MifareKeyTypeEnum.typeA,
+  key: Uint8List.fromList(List.filled(6, 0xFF)),
+  sector: 1,
+);
+final data = await StonePayments.mifareReadBlock(sector: 1, block: 0);
+await StonePayments.mifareWriteBlock(sector: 1, block: 0, data: Uint8List(16));
+await StonePayments.mifarePowerOff();
+```
+
+Também estão disponíveis `mifareBackupBlock`, `mifareRestoreBlock`, `mifareIncrementValue`, `mifareDecrementValue` (valor de 0 a 127) e `mifareCancelDetection`.
+
 ## Example
 
 ```dart
